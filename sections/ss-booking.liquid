@@ -1,0 +1,162 @@
+{{ 'ss-sections.css' | asset_url | stylesheet_tag }}
+<section id="{{ section.settings.anchor_id | default: 'booking' }}" class="ss ss-booking" style="--ss-bg:{{ section.settings.bg }};--ss-text:{{ section.settings.text }};--ss-accent:{{ section.settings.accent }}" data-calendly-url="{{ section.settings.calendly_url | escape }}" {{ section.shopify_attributes }}>
+  <div class="ss__wrap">
+    {%- if section.settings.heading != blank -%}<h2>{{ section.settings.heading | escape }}</h2>{%- endif -%}
+    {%- if section.settings.text_intro != blank -%}<p class="ss__lead">{{ section.settings.text_intro | escape }}</p>{%- endif -%}
+    <p class="ss-booking__note" data-product-note data-prefix="{{ section.settings.product_prefix | escape }}" hidden></p>
+    <div class="ss-booking__embed" data-calendly-embed style="--h:{{ section.settings.height }}px;--hm:{{ section.settings.height_mobile }}px"></div>
+    <noscript>{%- if section.settings.calendly_url != blank -%}<a href="{{ section.settings.calendly_url }}">{{ section.settings.noscript_label | escape }}</a>{%- endif -%}</noscript>
+  </div>
+</section>
+<script>
+(function () {
+  var el = document.currentScript.previousElementSibling;
+  if (!el) return;
+  var box = el.querySelector('[data-calendly-embed]');
+  var url = el.getAttribute('data-calendly-url');
+  if (!box || !url) return;
+
+  var product = new URLSearchParams(location.search).get('product');
+  var note = el.querySelector('[data-product-note]');
+  if (product && note) { note.textContent = (note.getAttribute('data-prefix') || '') + ' ' + product; note.hidden = false; }
+
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://calendly.com') return;
+    if (e.data && e.data.event === 'calendly.page_height' && e.data.payload && e.data.payload.height) {
+      var h = String(e.data.payload.height);
+      box.style.height = /px$/.test(h) ? h : h + 'px';
+    }
+  });
+
+  var started = false;
+  function load() {
+    if (started) return; started = true;
+    var s = document.createElement('script');
+    s.src = 'https://assets.calendly.com/assets/external/widget.js';
+    s.async = true;
+    s.onload = function () {
+      var a = (window.ABAttribution && window.ABAttribution.get()) || {};
+      var answers = {};
+      if (product) answers.a1 = product;      
+      if (a.fbclid) answers.a2 = a.fbclid;    
+      Calendly.initInlineWidget({
+        url: url + (url.indexOf('?') > -1 ? '&' : '?') + 'hide_gdpr_banner=1',
+        parentElement: box,
+        utm: {
+          utmSource: a.utm_source, utmMedium: a.utm_medium, utmCampaign: a.utm_campaign,
+          utmContent: a.utm_content, utmTerm: a.utm_term
+        },
+        prefill: { customAnswers: answers }
+      });
+    };
+    document.head.appendChild(s);
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); load(); }
+    }, { rootMargin: '400px' });
+    io.observe(el);
+  } else {
+    window.addEventListener('load', load);
+  }
+})();
+</script>
+{% schema %}
+{
+  "name": "SS Booking",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Pick a time" },
+    { "type": "textarea", "id": "text_intro", "label": "Intro text", "default": "Choose a slot that works for you. Sessions are free and last about 45 minutes." },
+    { "type": "text", "id": "calendly_url", "label": "Calendly URL", "info": "Example: https://calendly.com/your-name/30min", "default": "https://calendly.com/" },
+    { "type": "text", "id": "anchor_id", "label": "Section ID", "info": "The hero button scrolls here. Use letters only, no #.", "default": "booking" },
+    { "type": "text", "id": "product_prefix", "label": "Text shown when booking for a product", "default": "You are booking a session for:" },
+    { "type": "text", "id": "noscript_label", "label": "Fallback link text", "default": "Open the booking calendar" },
+    { "type": "range", "id": "height", "label": "Calendar height (desktop)", "min": 600, "max": 1400, "step": 20, "unit": "px", "default": 800 },
+    { "type": "range", "id": "height_mobile", "label": "Calendar height (mobile)", "min": 800, "max": 1800, "step": 20, "unit": "px", "default": 1100 },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text", "label": "Text", "default": "#14171f" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#8c6d3f" }
+  ],
+  "presets": [{ "name": "SS Booking" }]
+}
+{% endschema %}
+
+
+
+
+
+
+{% comment %} {{ 'ss-sections.css' | asset_url | stylesheet_tag }}
+<section id="{{ section.settings.anchor_id | default: 'booking' }}" class="ss ss-booking" style="--ss-bg:{{ section.settings.bg }};--ss-text:{{ section.settings.text }};--ss-accent:{{ section.settings.accent }}" data-calendly-url="{{ section.settings.calendly_url | escape }}" {{ section.shopify_attributes }}>
+  <div class="ss__wrap">
+    {%- if section.settings.heading != blank -%}<h2>{{ section.settings.heading | escape }}</h2>{%- endif -%}
+    {%- if section.settings.text_intro != blank -%}<p class="ss__lead">{{ section.settings.text_intro | escape }}</p>{%- endif -%}
+    <p class="ss-booking__note" data-product-note data-prefix="{{ section.settings.product_prefix | escape }}" hidden></p>
+    <div class="ss-booking__embed" data-calendly-embed style="min-height:{{ section.settings.height }}px"></div>
+    <noscript>{%- if section.settings.calendly_url != blank -%}<a href="{{ section.settings.calendly_url }}">{{ section.settings.noscript_label | escape }}</a>{%- endif -%}</noscript>
+  </div>
+</section>
+<script>
+(function () {
+  var el = document.currentScript.previousElementSibling;
+  if (!el) return;
+  var box = el.querySelector('[data-calendly-embed]');
+  var url = el.getAttribute('data-calendly-url');
+  if (!box || !url) return;
+
+  var product = new URLSearchParams(location.search).get('product');
+  var note = el.querySelector('[data-product-note]');
+  if (product && note) { note.textContent = (note.getAttribute('data-prefix') || '') + ' ' + product; note.hidden = false; }
+
+  var started = false;
+  function load() {
+    if (started) return; started = true;
+    var s = document.createElement('script');
+    s.src = 'https://assets.calendly.com/assets/external/widget.js';
+    s.async = true;
+    s.onload = function () {
+      var a = (window.ABAttribution && window.ABAttribution.get()) || {};
+      var answers = {};
+      if (product) answers.a1 = product;      // needs 1st custom question in Calendly event
+      if (a.fbclid) answers.a2 = a.fbclid;    // needs 2nd custom question (optional)
+      Calendly.initInlineWidget({
+        url: url + (url.indexOf('?') > -1 ? '&' : '?') + 'hide_gdpr_banner=1',
+        parentElement: box,
+        utm: {
+          utmSource: a.utm_source, utmMedium: a.utm_medium, utmCampaign: a.utm_campaign,
+          utmContent: a.utm_content, utmTerm: a.utm_term
+        },
+        prefill: { customAnswers: answers }
+      });
+    };
+    document.head.appendChild(s);
+  }
+  // Load Calendly only when the section is about to be seen -> no impact on first load
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); load(); }
+    }, { rootMargin: '400px' });
+    io.observe(el);
+  } else {
+    window.addEventListener('load', load);
+  }
+})();
+</script>
+{% schema %}
+{
+  "name": "SS Booking",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Pick a time" },
+    { "type": "textarea", "id": "text_intro", "label": "Intro text", "default": "Choose a slot that works for you. Sessions are free and last about 45 minutes." },
+    { "type": "text", "id": "calendly_url", "label": "Calendly URL", "info": "Example: https://calendly.com/your-name/30min", "default": "https://calendly.com/" },
+    { "type": "text", "id": "anchor_id", "label": "Section ID", "info": "The hero button scrolls here. Use letters only, no #.", "default": "booking" },
+    { "type": "text", "id": "product_prefix", "label": "Text shown when booking for a product", "default": "You are booking a session for:" },
+    { "type": "text", "id": "noscript_label", "label": "Fallback link text", "default": "Open the booking calendar" },
+    { "type": "range", "id": "height", "label": "Calendar height", "min": 600, "max": 1000, "step": 20, "unit": "px", "default": 700 },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text", "label": "Text", "default": "#14171f" },
+    { "type": "color", "id": "accent", "label": "Accent", "default": "#8c6d3f" }
+  ],
+  "presets": [{ "name": "SS Booking" }]
+}
+{% endschema %} {% endcomment %}

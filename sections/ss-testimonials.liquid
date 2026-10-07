@@ -1,0 +1,492 @@
+{%- liquid
+  assign sid = 'sst-' | append: section.id
+  assign count = section.blocks.size
+
+  # Each half of the track needs to be wider than the screen,
+  # so short lists are repeated until there are at least 8 cards per half.
+  assign repeats = 1
+  if count > 0
+    assign repeats = 8 | divided_by: count | plus: 1
+  endif
+-%}
+
+<section
+  id="{{ sid }}"
+  class="sst{% if section.settings.pause_on_hover %} sst--pause{% endif %}{% if section.settings.edge_fade %} sst--fade{% endif %}"
+  style="
+    --sst-bg: {{ section.settings.bg }};
+    --sst-text: {{ section.settings.text }};
+    --sst-card-bg: {{ section.settings.card_bg }};
+    --sst-star: {{ section.settings.star_color }};
+    --sst-meta: {{ section.settings.meta_color }};
+    --sst-card-w: {{ section.settings.card_width }}px;
+    --sst-gap: {{ section.settings.gap }}px;
+    --sst-radius: {{ section.settings.radius }}px;
+    --sst-speed: {{ section.settings.speed }}s;
+  "
+  {{ section.shopify_attributes }}
+>
+
+  {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+    <header class="sst__head">
+      {%- if section.settings.heading != blank -%}
+        <h2 class="sst__heading">{{ section.settings.heading | escape }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subheading != blank -%}
+        <p class="sst__sub">{{ section.settings.subheading | escape }}</p>
+      {%- endif -%}
+    </header>
+  {%- endif -%}
+
+  {%- if count > 0 -%}
+    <div class="sst__viewport">
+      <ul class="sst__track">
+
+        {%- for half in (1..2) -%}
+          {%- for rep in (1..repeats) -%}
+            {%- for block in section.blocks -%}
+
+              {%- liquid
+                assign is_copy = false
+                if half == 2 or rep > 1
+                  assign is_copy = true
+                endif
+                assign rating = block.settings.rating
+              -%}
+
+              <li
+                class="sst__card"
+                {% if is_copy %}aria-hidden="true"{% else %}{{ block.shopify_attributes }}{% endif %}
+              >
+
+                <div class="sst__person">
+                  <span class="sst__avatar">
+                    {%- if block.settings.avatar != blank -%}
+                      {{
+                        block.settings.avatar
+                        | image_url: width: 96
+                        | image_tag:
+                          loading: 'lazy',
+                          width: 44,
+                          height: 44,
+                          alt: ''
+                      }}
+                    {%- else -%}
+                      <span class="sst__initial">{{ block.settings.name | strip | slice: 0, 1 | upcase }}</span>
+                    {%- endif -%}
+                  </span>
+
+                  <div class="sst__who">
+                    <span class="sst__name">{{ block.settings.name | escape }}</span>
+                    <span class="sst__meta">
+                      {%- if section.settings.verified_label != blank -%}
+                        {{ section.settings.verified_label | escape }}
+                        {%- if block.settings.location != blank %} &middot; {% endif -%}
+                      {%- endif -%}
+                      {{ block.settings.location | escape }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="sst__stars" role="img" aria-label="{{ rating }} {{ section.settings.stars_label | escape }}">
+                  {%- for i in (1..5) -%}
+                    <span class="sst__star{% if i > rating %} is-empty{% endif %}" aria-hidden="true">&#9733;</span>
+                  {%- endfor -%}
+                </div>
+
+                <blockquote class="sst__quote">{{ block.settings.quote | escape }}</blockquote>
+
+              </li>
+
+            {%- endfor -%}
+          {%- endfor -%}
+        {%- endfor -%}
+
+      </ul>
+    </div>
+  {%- endif -%}
+
+</section>
+
+<style>
+  #{{ sid }} {
+    padding: clamp(40px, 6vw, 80px) 0;
+    background: var(--sst-bg);
+    color: var(--sst-text);
+    overflow: hidden;
+  }
+.sst.sst--pause{
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+  /* Optional heading */
+  #{{ sid }} .sst__head {
+    max-width: 1100px;
+    margin: 0 auto clamp(24px, 4vw, 40px);
+    padding: 0 20px;
+  }
+
+  #{{ sid }} .sst__heading {
+    margin: 0 0 0.4em;
+    font-family: var(--font-heading-family);
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  #{{ sid }} .sst__sub {
+    max-width: 56ch;
+    margin: 0;
+    line-height: 1.6;
+    opacity: 0.75;
+  }
+
+  /* Slider */
+  #{{ sid }} .sst__viewport {
+    overflow: hidden;
+  }
+
+  #{{ sid }} .sst--fade .sst__viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+            mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+
+ 
+  #{{ sid }} .sst__track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    margin: 0;
+    padding: 0 var(--sst-gap) 0 0;
+    list-style: none;
+    animation: sst-marquee var(--sst-speed) linear infinite;
+    will-change: transform;
+  }
+
+  #{{ sid }}.sst--pause .sst__track:hover,
+  #{{ sid }}.sst--pause .sst__track:focus-within {
+    animation-play-state: paused;
+  }
+
+  @keyframes sst-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* Card */
+  #{{ sid }} .sst__card {
+    flex: 0 0 min(var(--sst-card-w), 82vw);
+    padding: 28px 30px 32px;
+    border-radius: var(--sst-radius);
+    background: var(--sst-card-bg);
+  }
+
+  #{{ sid }} .sst__person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  #{{ sid }} .sst__avatar {
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border: 2px solid var(--sst-card-bg);
+    border-radius: 50%;
+    background: var(--sst-text);
+    color: var(--sst-card-bg);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  }
+
+  #{{ sid }} .sst__avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #{{ sid }} .sst__initial {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 18px;
+  }
+
+  #{{ sid }} .sst__who {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  #{{ sid }} .sst__name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  #{{ sid }} .sst__meta {
+    color: var(--sst-meta);
+    font-size: 11.5px;
+    line-height: 1.3;
+  }
+
+  #{{ sid }} .sst__stars {
+    display: flex;
+    gap: 3px;
+    margin: 18px 0 14px;
+    color: var(--sst-star);
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  #{{ sid }} .sst__star.is-empty {
+    opacity: 0.25;
+  }
+
+  #{{ sid }} .sst__quote {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    font-style: italic;
+    line-height: 1.7;
+  }
+
+  /* No animation for people who ask for less motion: let them scroll instead */
+  @media (prefers-reduced-motion: reduce) {
+    #{{ sid }} .sst__viewport {
+      overflow-x: auto;
+    }
+
+    #{{ sid }} .sst__track {
+      animation: none;
+    }
+
+    #{{ sid }} .sst__card[aria-hidden="true"] {
+      display: none;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "SS Testimonials",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Optional. Leave empty to show only the cards."
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "info": "Optional."
+    },
+    {
+      "type": "text",
+      "id": "verified_label",
+      "label": "Label before the location",
+      "info": "Shown as: Verified buyer · Dallas, TX. Leave empty to show only the location.",
+      "default": "Verified buyer"
+    },
+    {
+      "type": "text",
+      "id": "stars_label",
+      "label": "Star rating text for screen readers",
+      "info": "Read out after the number, for example: 5 stars out of 5.",
+      "default": "out of 5 stars"
+    },
+    {
+      "type": "header",
+      "content": "Slider"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Time for one full loop",
+      "info": "Higher number means slower.",
+      "min": 20,
+      "max": 120,
+      "step": 5,
+      "unit": "s",
+      "default": 60
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause when hovering",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "edge_fade",
+      "label": "Fade cards at the screen edges",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Cards"
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width",
+      "min": 260,
+      "max": 440,
+      "step": 10,
+      "unit": "px",
+      "default": 340
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Space between cards",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Card background",
+      "default": "#f6f3ee"
+    },
+    {
+      "type": "color",
+      "id": "text",
+      "label": "Text",
+      "default": "#14171f"
+    },
+    {
+      "type": "color",
+      "id": "meta_color",
+      "label": "Small text under the name",
+      "default": "#7a7a7a"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Stars",
+      "default": "#f2b01e"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "avatar",
+          "label": "Customer photo",
+          "info": "Optional. Without a photo, the first letter of the name is shown."
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "Customer name",
+          "default": "Customer name"
+        },
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Location",
+          "default": "Dallas, TX"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Star rating",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "textarea",
+          "id": "quote",
+          "label": "Quote",
+          "default": "The fit was perfect from the first fitting."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "SS Testimonials",
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "name": "Michael R.",
+            "location": "Dallas, TX",
+            "quote": "The fit was perfect from the first fitting. Nothing off the rack has ever felt like this."
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "name": "James T.",
+            "location": "Houston, TX",
+            "quote": "My stylist understood exactly what I wanted for the wedding and kept me updated at every stage."
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "name": "Daniel K.",
+            "location": "Atlanta, GA",
+            "quote": "Worth every dollar. I get compliments every time I wear it."
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "name": "Chris W.",
+            "location": "Phoenix, AZ",
+            "quote": "Easy process from start to finish. The digital preview meant no surprises when it arrived."
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "name": "Ryan P.",
+            "location": "Chicago, IL",
+            "quote": "Great fabric, sharp tailoring and quick replies to every question I had."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

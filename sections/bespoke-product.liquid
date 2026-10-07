@@ -1,0 +1,88 @@
+{{ 'ss-sections.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign fabric = product.metafields.custom.fabric.value
+  assign ptime = product.metafields.custom.production_time.value
+  assign lapel = product.metafields.custom.lapel_style.value
+  assign lining = product.metafields.custom.lining_colour.value
+  assign monogram = product.metafields.custom.monogram_available.value
+  assign book_mode = product.metafields.custom.book_instead.value
+  assign cur = product.selected_or_first_available_variant
+-%}
+<section class="ss" style="--ss-bg:{{ section.settings.bg }};--ss-text:{{ section.settings.text }};--ss-accent:{{ section.settings.accent }}" {{ section.shopify_attributes }}>
+  <div class="ss__wrap ss-bp">
+    <div class="ss-bp__media">
+      {%- for image in product.images limit: 6 -%}
+        {{ image | image_url: width: 1000 | image_tag: loading: 'lazy', widths: '500, 750, 1000', sizes: '(min-width: 750px) 55vw, 100vw', alt: image.alt }}
+      {%- endfor -%}
+    </div>
+
+    <div class="ss-bp__info">
+      <h1 style="font-family:var(--font-heading-family);font-weight:400;margin:0">{{ product.title | escape }}</h1>
+      <p class="ss-bp__price">{{ cur.price | money }}</p>
+
+      {%- if fabric != blank or ptime != blank -%}
+        <div class="ss-bp__spec">
+          <h3>{{ section.settings.details_heading | escape }}</h3>
+          <dl>
+            {%- if fabric != blank -%}<dt>{{ section.settings.fabric_label | escape }}</dt><dd>{{ fabric | escape }}</dd>{%- endif -%}
+            {%- if ptime != blank -%}<dt>{{ section.settings.time_label | escape }}</dt><dd>{{ ptime | escape }}</dd>{%- endif -%}
+          </dl>
+        </div>
+      {%- endif -%}
+
+      {%- if lapel != blank or lining != blank or monogram == true -%}
+        <div class="ss-bp__spec">
+          <h3>{{ section.settings.custom_heading | escape }}</h3>
+          <dl>
+            {%- if lapel != blank -%}<dt>{{ section.settings.lapel_label | escape }}</dt><dd>{{ lapel | escape }}</dd>{%- endif -%}
+            {%- if lining != blank -%}<dt>{{ section.settings.lining_label | escape }}</dt><dd>{{ lining | escape }}</dd>{%- endif -%}
+            {%- if monogram == true -%}<dt>{{ section.settings.monogram_label | escape }}</dt><dd>{{ section.settings.monogram_yes | escape }}</dd>{%- endif -%}
+          </dl>
+        </div>
+      {%- endif -%}
+
+      {%- if book_mode == true -%}
+        <a class="ss-btn" href="{{ section.settings.booking_url }}?product={{ product.title | url_encode }}">{{ section.settings.book_label | escape }}</a>
+      {%- else -%}
+        {%- form 'product', product -%}
+          {%- if product.has_only_default_variant == false -%}
+            <select name="id" aria-label="{{ product.options | join: ', ' | escape }}">
+              {%- for v in product.variants -%}
+                <option value="{{ v.id }}" {% if v == cur %}selected{% endif %} {% unless v.available %}disabled{% endunless %}>{{ v.title | escape }}</option>
+              {%- endfor -%}
+            </select>
+          {%- else -%}
+            <input type="hidden" name="id" value="{{ cur.id }}">
+          {%- endif -%}
+          <button type="submit" class="ss-btn" {% unless cur.available %}disabled{% endunless %}>
+            {%- if cur.available -%}{{ section.settings.atc_label | escape }}{%- else -%}{{ section.settings.soldout_label | escape }}{%- endif -%}
+          </button>
+        {%- endform -%}
+      {%- endif -%}
+
+      <div style="margin-top:2rem;line-height:1.65">{{ product.description }}</div>
+    </div>
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Bespoke product",
+  "settings": [
+    { "type": "text", "id": "booking_url", "label": "Booking page link", "default": "/pages/style-session" },
+    { "type": "text", "id": "book_label", "label": "Booking button label", "default": "Book a style session" },
+    { "type": "text", "id": "atc_label", "label": "Add to cart label", "default": "Add to cart" },
+    { "type": "text", "id": "soldout_label", "label": "Sold out label", "default": "Sold out" },
+    { "type": "text", "id": "details_heading", "label": "Details heading", "default": "Fabric and timing" },
+    { "type": "text", "id": "fabric_label", "label": "Fabric label", "default": "Fabric" },
+    { "type": "text", "id": "time_label", "label": "Production time label", "default": "Made in" },
+    { "type": "text", "id": "custom_heading", "label": "Customisation heading", "default": "Make it yours" },
+    { "type": "text", "id": "lapel_label", "label": "Lapel label", "default": "Lapel style" },
+    { "type": "text", "id": "lining_label", "label": "Lining label", "default": "Lining colour" },
+    { "type": "text", "id": "monogram_label", "label": "Monogram label", "default": "Monogram" },
+    { "type": "text", "id": "monogram_yes", "label": "Monogram available text", "default": "Available" },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#ffffff" },
+    { "type": "color", "id": "text", "label": "Text", "default": "#14171f" },
+    { "type": "color", "id": "accent", "label": "Button color", "default": "#8c6d3f" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,18 @@
+{%- if settings.wa_enabled and settings.wa_phone != blank -%}
+  {%- assign wa_phone = settings.wa_phone | remove: '+' | remove: ' ' | remove: '-' | remove: '(' | remove: ')' -%}
+  <a class="ab-wa ab-wa--{{ settings.wa_position }}"
+     data-wa-button
+     data-wa-phone="{{ wa_phone }}"
+     data-wa-message="{{ settings.wa_message | escape }}"
+     href="https://wa.me/{{ wa_phone }}?text={{ settings.wa_message | url_encode }}"
+     target="_blank" rel="noopener"
+     aria-label="{{ settings.wa_label | escape }}">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12 3C7 3 3 6.6 3 11c0 2 .7 3.6 2 5l-1 5 5-1.5c.9.3 2 .5 3 .5 5 0 9-3.6 9-8.5S17 3 12 3z"/></svg>
+  </a>
+  <style>
+    .ab-wa{position:fixed;z-index:50;display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:#25d366;box-shadow:0 4px 14px rgba(0,0,0,.28);bottom:calc({{ settings.wa_bottom_offset }}px + env(safe-area-inset-bottom,0px))}
+    .ab-wa--right{right:14px}.ab-wa--left{left:14px}
+    .ab-wa:focus-visible{outline:3px solid #14171f;outline-offset:3px}
+    @media (min-width:750px){.ab-wa{width:56px;height:56px;bottom:24px}.ab-wa--right{right:24px}.ab-wa--left{left:24px}}
+  </style>
+{%- endif -%}

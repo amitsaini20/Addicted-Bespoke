@@ -1,0 +1,50 @@
+{{ 'ss-sections.css' | asset_url | stylesheet_tag }}
+<section class="ss" style="--ss-bg:{{ section.settings.bg }};--ss-text:{{ section.settings.text }}" {{ section.shopify_attributes }}>
+  <div class="ss__wrap">
+    {%- if section.settings.heading != blank -%}<h2>{{ section.settings.heading | escape }}</h2>{%- endif -%}
+    <div class="ss-faq">
+      {%- for block in section.blocks -%}
+        <details {{ block.shopify_attributes }}>
+          <summary>{{ block.settings.question | escape }}</summary>
+          <div class="ss-faq__a">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{%- if section.blocks.size > 0 -%}
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{%- for block in section.blocks -%}
+{"@type":"Question","name":{{ block.settings.question | json }},"acceptedAnswer":{"@type":"Answer","text":{{ block.settings.answer | strip_html | json }}}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]}
+</script>
+{%- endif -%}
+{% schema %}
+{
+  "name": "SS FAQ",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Questions, answered" },
+    { "type": "color", "id": "bg", "label": "Background", "default": "#f7f6f3" },
+    { "type": "color", "id": "text", "label": "Text", "default": "#14171f" }
+  ],
+  "blocks": [
+    {
+      "type": "faq_item", "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Question" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Answer</p>" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "SS FAQ",
+    "blocks": [
+      { "type": "faq_item", "settings": { "question": "How long does a custom suit take?", "answer": "<p>Most pieces are ready 7 to 10 weeks after your final measurements.</p>" } },
+      { "type": "faq_item", "settings": { "question": "Is the style session free?", "answer": "<p>Yes. The session is free and there is no obligation to order.</p>" } },
+      { "type": "faq_item", "settings": { "question": "Can I join by video?", "answer": "<p>Yes. You can attend in person or by video call.</p>" } }
+    ]
+  }]
+}
+{% endschema %}

@@ -1,0 +1,40 @@
+{{ 'ss-sections.css' | asset_url | stylesheet_tag }}
+{%- assign d = section.settings.image_desktop -%}
+{%- assign m = section.settings.image_mobile -%}
+<section class="ss-hero" style="--ss-shade:{{ section.settings.shade | divided_by: 100.0 }};--ss-accent:{{ section.settings.accent }}" {{ section.shopify_attributes }}>
+  {%- if d != blank -%}
+    <picture>
+      {%- if m != blank -%}
+        <source media="(max-width: 749px)" srcset="{{ m | image_url: width: 750 }} 750w, {{ m | image_url: width: 1100 }} 1100w" sizes="100vw">
+      {%- endif -%}
+      <img src="{{ d | image_url: width: 1600 }}"
+           srcset="{{ d | image_url: width: 800 }} 800w, {{ d | image_url: width: 1200 }} 1200w, {{ d | image_url: width: 1600 }} 1600w, {{ d | image_url: width: 2200 }} 2200w"
+           sizes="100vw" width="{{ d.width }}" height="{{ d.height }}"
+           alt="{{ d.alt | escape }}" fetchpriority="high" loading="eager">
+    </picture>
+  {%- endif -%}
+  <div class="ss-hero__shade"></div>
+  <div class="ss-hero__inner">
+    {%- if section.settings.heading != blank -%}<h1>{{ section.settings.heading | escape }}</h1>{%- endif -%}
+    {%- if section.settings.subheading != blank -%}<p>{{ section.settings.subheading | escape }}</p>{%- endif -%}
+    {%- if section.settings.button_label != blank -%}
+      <a class="ss-btn" href="{{ section.settings.button_target }}">{{ section.settings.button_label | escape }}</a>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "SS Hero",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Book your style session" },
+    { "type": "textarea", "id": "subheading", "label": "Subheading", "default": "Sit down with a stylist, choose your fabric and cut, and leave with a suit made only for you." },
+    { "type": "image_picker", "id": "image_desktop", "label": "Background image (desktop)" },
+    { "type": "image_picker", "id": "image_mobile", "label": "Background image (mobile)", "info": "Optional. Falls back to the desktop image." },
+    { "type": "range", "id": "shade", "label": "Image darkness", "min": 0, "max": 80, "step": 5, "unit": "%", "default": 40 },
+    { "type": "color", "id": "accent", "label": "Button color", "default": "#8c6d3f" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Choose a time" },
+    { "type": "text", "id": "button_target", "label": "Button scrolls to", "info": "Must match the Section ID in the Booking section, with a # in front.", "default": "#booking" }
+  ],
+  "presets": [{ "name": "SS Hero" }]
+}
+{% endschema %}

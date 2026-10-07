@@ -1,0 +1,322 @@
+{%- liquid
+  assign sid = 'ssh-' | append: section.id
+-%}
+
+<section
+  id="{{ sid }}"
+  class="ssh"
+  style="
+    --ssh-bg: {{ section.settings.bg }};
+    --ssh-title: {{ section.settings.title_color }};
+    --ssh-body: {{ section.settings.body_color }};
+    --ssh-number: {{ section.settings.number_color }};
+    --ssh-line: {{ section.settings.line_color }};
+    --ssh-cols: {{ section.settings.columns }};
+  "
+  {{ section.shopify_attributes }}
+>
+  <div class="ssh__wrap">
+
+    {%- if section.settings.heading != blank or section.settings.intro != blank -%}
+      <header class="ssh__head">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="ssh__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+
+        {%- if section.settings.intro != blank -%}
+          <p class="ssh__intro">{{ section.settings.intro | escape }}</p>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <ol class="ssh__steps">
+      {%- for block in section.blocks -%}
+        {%- assign number = forloop.index | prepend: '0' | slice: -2, 2 -%}
+
+        <li class="ssh__step" {{ block.shopify_attributes }}>
+
+          {%- if block.settings.icon != blank -%}
+            <span class="ssh__icon">
+              {{
+                block.settings.icon
+                | image_url: width: 128
+                | image_tag:
+                  loading: 'lazy',
+                  width: 64,
+                  height: 64,
+                  alt: block.settings.icon.alt
+              }}
+            </span>
+          {%- else -%}
+            <span class="ssh__number" aria-hidden="true">{{ number }}</span>
+          {%- endif -%}
+
+          {%- if block.settings.title != blank -%}
+            <h3 class="ssh__title">{{ block.settings.title | escape }}</h3>
+          {%- endif -%}
+
+          {%- if block.settings.text != blank -%}
+            <p class="ssh__text">{{ block.settings.text | escape }}</p>
+          {%- endif -%}
+
+        </li>
+      {%- endfor -%}
+    </ol>
+
+    {%- if section.settings.show_line -%}
+      <hr class="ssh__rule">
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+  #{{ sid }} {
+    padding: clamp(32px, 6vw, 90px) 20px;
+    background: var(--ssh-bg);
+  }
+
+  #{{ sid }} .ssh__wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  #{{ sid }} .ssh__head {
+    max-width: 60ch;
+    margin: 0 0 clamp(24px, 4vw, 48px);
+  }
+
+  #{{ sid }} .ssh__heading {
+    margin: 0 0 0.4em;
+    color: var(--ssh-title);
+    font-family: var(--font-heading-family);
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 400;
+    line-height: 1.15;
+  }
+
+  #{{ sid }} .ssh__intro {
+    margin: 0;
+    color: var(--ssh-body);
+    line-height: 1.6;
+  }
+
+  #{{ sid }} .ssh__steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  #{{ sid }} .ssh__step {
+    padding: 32px 24px;
+    border-top: 1px solid var(--ssh-line);
+  }
+
+  #{{ sid }} .ssh__step:first-child {
+    border-top: 0;
+  }
+
+  #{{ sid }} .ssh__number {
+    display: block;
+    margin-bottom: 24px;
+    color: var(--ssh-number);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(48px, 6vw, 68px);
+    font-style: italic;
+    line-height: 1;
+  }
+
+  #{{ sid }} .ssh__icon {
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  #{{ sid }} .ssh__icon img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+  }
+
+  #{{ sid }} .ssh__title {
+    margin: 0 0 20px;
+    color: var(--ssh-title);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  #{{ sid }} .ssh__text {
+    margin: 0;
+    color: var(--ssh-body);
+    font-size: 14.5px;
+    line-height: 1.7;
+  }
+
+  #{{ sid }} .ssh__rule {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--ssh-line);
+  }
+
+  @media (min-width: 750px) {
+    #{{ sid }} .ssh__steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-right: 1px solid var(--ssh-line);
+    }
+
+    #{{ sid }} .ssh__step {
+      padding: 48px 24px;
+      border-top: 0;
+      border-left: 1px solid var(--ssh-line);
+    }
+  }
+
+  /* Desktop: columns from the section settings */
+  @media (min-width: 990px) {
+    #{{ sid }} .ssh__steps {
+      grid-template-columns: repeat(var(--ssh-cols), minmax(0, 1fr));
+    }
+
+    #{{ sid }} .ssh__step {
+      padding: 56px 24px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "SS How it works",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "info": "Optional. Leave empty to show only the steps."
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro text",
+      "info": "Optional."
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns on desktop",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_line",
+      "label": "Show line below the steps",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "title_color",
+      "label": "Title",
+      "default": "#14171f"
+    },
+    {
+      "type": "color",
+      "id": "body_color",
+      "label": "Body text",
+      "default": "#6b6b6b"
+    },
+    {
+      "type": "color",
+      "id": "number_color",
+      "label": "Step number",
+      "default": "#ece9e1"
+    },
+    {
+      "type": "color",
+      "id": "line_color",
+      "label": "Divider lines",
+      "default": "#ebe9e4"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon",
+          "info": "Optional. If added, it replaces the step number."
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Book a style session"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Short text",
+          "default": "Start with a free one-on-one consultation with our design team."
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "SS How it works",
+      "blocks": [
+        {
+          "type": "step",
+          "settings": {
+            "title": "Book a style session",
+            "text": "Start with a free one-on-one consultation with our design team via video call or WhatsApp. We understand your vision, occasion, body type, and every detail that matters to you."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "title": "Design & customise",
+            "text": "Choose your fabric, patterns, colours, silhouette, and every finishing detail. Every piece is built entirely around your preferences."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "title": "Digital mockup & approval",
+            "text": "Before a single stitch is placed, you receive a full digital mockup of your garment. Review it, request changes, and only approve when you're completely satisfied."
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "title": "Handcrafted & delivered",
+            "text": "Our master tailors bring your design to life with live photo and video updates throughout production. Once complete, your order is packed with care and shipped to your door."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

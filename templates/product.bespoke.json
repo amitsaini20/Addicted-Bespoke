@@ -1,0 +1,4 @@
+{
+  "sections": { "main": { "type": "bespoke-product", "settings": {} } },
+  "order": ["main"]
+}
